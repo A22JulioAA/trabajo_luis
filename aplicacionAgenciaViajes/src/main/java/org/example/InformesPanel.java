@@ -10,31 +10,30 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 import com.itextpdf.kernel.colors.Color;
-import com.itextpdf.kernel.colors.DeviceRgb; // Importar DeviceRgb para colores personalizados
+import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.canvas.draw.SolidLine;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.LineSeparator;
 
 public class InformesPanel extends JPanel {
     public InformesPanel() {
         setLayout(null);
 
-        // Etiqueta descriptiva
         JLabel lblDescripcion = new JLabel("Genera un informe completo sobre la gestión de la agencia.\n" +
                 "Incluye datos sobre clientes, teléfonos, viajes, reservas y cancelaciones.");
         lblDescripcion.setBounds(20, 20, 500, 40);
         add(lblDescripcion);
 
-        // Botón para generar el informe
         JButton btnGenerarInforme = new JButton("Generar Informe PDF");
         btnGenerarInforme.setBounds(20, 80, 200, 30);
         add(btnGenerarInforme);
 
-        // Acción del botón
         btnGenerarInforme.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -53,7 +52,7 @@ public class InformesPanel extends JPanel {
 
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setDialogTitle("Seleccionar ubicación para guardar el informe");
-            fileChooser.setSelectedFile(new java.io.File("InformeAgencia.pdf")); // Nombre por defecto
+            fileChooser.setSelectedFile(new java.io.File("InformeAgencia.pdf"));
 
             int result = fileChooser.showSaveDialog(this);
             if (result != JFileChooser.APPROVE_OPTION) {
@@ -78,6 +77,9 @@ public class InformesPanel extends JPanel {
             document.add(new Paragraph("Descripción del informe:"));
             document.add(new Paragraph(descripcion).setFontSize(12));
 
+            SolidLine solidLine = new SolidLine();
+            document.add(new LineSeparator(solidLine));
+
             document.add(new Paragraph("\n"));
 
             generarSeccionPDF(document, connection, "Clientes", "SELECT id_cliente, nombre, apellidos, dni, correo_electronico FROM CLIENTE",
@@ -100,7 +102,6 @@ public class InformesPanel extends JPanel {
                     new String[]{"id_cancelacion", "fecha_cancelacion", "penalizacion", "id_reserva"},
                     new String[]{"ID Cancelación", "Fecha Cancelación", "Penalización", "ID Reserva"});
 
-            // Cerrar documento
             document.close();
 
             JOptionPane.showMessageDialog(this, "Informe generado con éxito: " + destino);
@@ -111,44 +112,43 @@ public class InformesPanel extends JPanel {
     }
 
     private void generarSeccionPDF(Document document, Connection connection, String titulo, String query, String[] columnas, String[] encabezados) throws Exception {
-        // Título de la sección
         document.add(new Paragraph(titulo).setFontSize(14));
         document.add(new Paragraph("\n"));
 
-        // Crear tabla con el número de columnas necesario
         Table table = new Table(columnas.length);
 
-        // Definir color azul claro para encabezados utilizando DeviceRgb
-        Color azulClaro = new DeviceRgb(173, 216, 230); // Azul claro
-        Color grisOscuro = new DeviceRgb(169, 169, 169); // Gris oscuro para bordes
+        Color azulClaro = new DeviceRgb(0, 123, 255);
+        Color grisOscuro = new DeviceRgb(169, 169, 169);
+        Color grisClaro = new DeviceRgb(211, 211, 211);
         Color blanco = ColorConstants.WHITE;
 
-        // Encabezados con nombres amigables para el usuario
         for (String encabezado : encabezados) {
             Cell cell = new Cell().add(new Paragraph(encabezado));
-            cell.setBackgroundColor(azulClaro)  // Fondo azul claro
-                    .setFontColor(blanco)  // Color blanco para el texto
-                    ;
+            cell.setBackgroundColor(azulClaro)
+                    .setFontColor(blanco);
             table.addHeaderCell(cell);
         }
 
-        // Datos de la consulta
         Statement stmt = connection.createStatement();
         ResultSet rs = stmt.executeQuery(query);
+        int rowIndex = 0;
+
         while (rs.next()) {
             for (String columna : columnas) {
                 String valor = rs.getString(columna) != null ? rs.getString(columna) : "N/A";
-                table.addCell(new Cell().add(new Paragraph(valor)));
+                Color fondoFila = (rowIndex % 2 == 0) ? blanco : grisClaro;
+                Cell cell = new Cell().add(new Paragraph(valor));
+                cell.setBackgroundColor(fondoFila);
+                table.addCell(cell);
             }
+            rowIndex++;
         }
 
-        // Añadir tabla al documento
         document.add(table);
         document.add(new Paragraph("\n"));
 
-        // Línea horizontal después de la tabla
-        document.add(new Paragraph("\n"));  // Añadir una línea horizontal
+        SolidLine solidLine = new SolidLine();
+        document.add(new LineSeparator(solidLine));
         document.add(new Paragraph("\n"));
     }
-
 }
