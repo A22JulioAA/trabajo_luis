@@ -11,12 +11,15 @@ public class VistaGeneral {
 
             JTabbedPane tabbedPane = new JTabbedPane();
 
-            // Crear paneles para cada tabla
+            // Añadir paneles para cada tabla
             tabbedPane.addTab("Clientes", new ClientesPanel());
             tabbedPane.addTab("Teléfonos", new TelefonosPanel());
             tabbedPane.addTab("Viajes", new ViajesPanel());
             tabbedPane.addTab("Reservas", new ReservasPanel());
             tabbedPane.addTab("Cancelaciones", new CancelacionesPanel());
+
+            // Añadir pestaña de informes
+            tabbedPane.addTab("Informes", new InformesPanel());
 
             frame.add(tabbedPane);
             frame.setVisible(true);
